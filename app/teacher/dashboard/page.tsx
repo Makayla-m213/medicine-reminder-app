@@ -4,19 +4,19 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import StudentCard from '@/components/teacher/StudentCard';
 
 interface User {
   id: string;
   fullName: string;
+  email: string;
   role: string;
 }
 
 export default function TeacherDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-
-  // Get real students from Convex
+  
+  // ✅ HOOKS AT THE TOP
   const students = useQuery(api.students.getAllStudents);
 
   useEffect(() => {
@@ -33,24 +33,21 @@ export default function TeacherDashboard() {
     setUser(parsedUser);
   }, [router]);
 
+  // ✅ Loading state AFTER hooks
+  if (!user) return null;
+  
+  if (students === undefined) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
   const handleLogout = () => {
     localStorage.removeItem('currentUser');
     router.push('/teacher/login');
   };
-
-  if (!user) return null;
-
-  // Loading state while Convex fetches data
-  if (students === undefined) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading students...</p>
-        </div>
-      </div>
-    );
-  }
 
   const today = new Date().toLocaleDateString('en-US', { 
     weekday: 'long', 
@@ -61,7 +58,6 @@ export default function TeacherDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
-      {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
@@ -77,7 +73,7 @@ export default function TeacherDashboard() {
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">{user.fullName}</p>
-                <p className="text-xs text-gray-600">Teacher</p>
+                <p className="text-xs text-gray-600">{user.email}</p>
               </div>
               <button
                 onClick={handleLogout}
@@ -90,14 +86,11 @@ export default function TeacherDashboard() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Date Banner */}
         <div className="bg-white rounded-xl shadow-md p-4 mb-6">
           <p className="text-center text-gray-700 font-medium">{today}</p>
         </div>
 
-        {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-xl shadow-md p-6">
             <p className="text-sm text-gray-600 mb-1">Total Students</p>
@@ -117,14 +110,13 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
-        {/* Students List */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">My Students ({students.length})</h2>
           
           {students.length === 0 ? (
             <div className="bg-white rounded-xl shadow-md p-12 text-center">
-              <p className="text-gray-500 text-lg">No students assigned yet</p>
-              <p className="text-gray-400 text-sm mt-2">Students will appear here once they are assigned to you</p>
+              <p className="text-gray-500 text-lg">No students found</p>
+              <p className="text-gray-400 text-sm mt-2">Run seedData to add students</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -134,7 +126,6 @@ export default function TeacherDashboard() {
                   onClick={() => router.push(`/teacher/student/${student._id}`)}
                   className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
                 >
-                  {/* Student Header */}
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-xl font-bold text-gray-900">{student.name}</h3>
@@ -144,13 +135,9 @@ export default function TeacherDashboard() {
                       <span className="text-2xl">👤</span>
                     </div>
                   </div>
-
-                  {/* Medical Notes Preview */}
                   <div className="mb-4">
                     <p className="text-sm text-gray-600 line-clamp-2">{student.medicalNotes}</p>
                   </div>
-
-                  {/* Quick Info */}
                   <div className="flex items-center justify-between text-sm border-t pt-3">
                     <span className="text-gray-600">Parent: {student.parentName}</span>
                     <span className="text-purple-600 font-medium">View Details →</span>
@@ -161,10 +148,9 @@ export default function TeacherDashboard() {
           )}
         </div>
 
-        {/* Info Banner */}
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
           <p className="text-sm text-purple-800">
-            <strong>Note:</strong> You have read-only access. You can view student schedules and add observation notes, but cannot modify prescriptions.
+            💡 <strong>Note:</strong> You have read-only access. You can view student schedules and add observation notes, but cannot modify prescriptions.
           </p>
         </div>
       </main>

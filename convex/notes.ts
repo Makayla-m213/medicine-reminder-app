@@ -8,12 +8,12 @@ export const getNotesByStudent = query({
     return await ctx.db
       .query("notes")
       .withIndex("by_student", (q) => q.eq("studentId", args.studentId))
-      .order("desc") // Newest first
+      .order("desc")
       .collect();
   },
 });
 
-// Add a new note (Teacher would do this)
+// Add a new note (Teacher does this)
 export const addNote = mutation({
   args: {
     studentId: v.id("students"),
@@ -33,10 +33,28 @@ export const addNote = mutation({
   },
 });
 
-// Delete a note (if needed)
+// ✅ ADD THIS - Edit a note
+export const editNote = mutation({
+  args: {
+    noteId: v.id("notes"),
+    content: v.string(),
+    concern: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.noteId, {
+      content: args.content,
+      concern: args.concern,
+      timestamp: new Date().toISOString(),
+    });
+    return { success: true };
+  },
+});
+
+// ✅ UPDATE THIS - Delete a note (make it work)
 export const deleteNote = mutation({
   args: { noteId: v.id("notes") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.noteId);
+    return { success: true };
   },
 });

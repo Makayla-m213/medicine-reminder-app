@@ -9,10 +9,13 @@
  */
 
 import type * as http from "../http.js";
+import type * as linkData from "../linkData.js";
 import type * as notes from "../notes.js";
+import type * as parents from "../parents.js";
 import type * as prescriptions from "../prescriptions.js";
 import type * as seedData from "../seedData.js";
 import type * as students from "../students.js";
+import type * as teachers from "../teachers.js";
 
 import type {
   ApiFromModules,
@@ -22,10 +25,13 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   http: typeof http;
+  linkData: typeof linkData;
   notes: typeof notes;
+  parents: typeof parents;
   prescriptions: typeof prescriptions;
   seedData: typeof seedData;
   students: typeof students;
+  teachers: typeof teachers;
 }>;
 
 /**

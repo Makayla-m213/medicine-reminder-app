@@ -12,7 +12,14 @@ export const getPrescriptionsByStudent = query({
   },
 });
 
-// Add a new prescription (Parent would do this)
+// Get ALL prescriptions (for wearable device)
+export const getAllPrescriptions = query({
+  handler: async (ctx) => {
+    return await ctx.db.query("prescriptions").collect();
+  },
+});
+
+// Add a new prescription
 export const addPrescription = mutation({
   args: {
     studentId: v.id("students"),
@@ -39,7 +46,7 @@ export const addPrescription = mutation({
   },
 });
 
-// Update prescription status (completed/missed)
+// Update prescription status (completed/missed/pending)
 export const updatePrescriptionStatus = mutation({
   args: {
     prescriptionId: v.id("prescriptions"),
@@ -53,5 +60,31 @@ export const updatePrescriptionStatus = mutation({
     await ctx.db.patch(args.prescriptionId, {
       status: args.status,
     });
+  },
+});
+
+// ✅ EDIT prescription (medicine name, dosage, time)
+export const editPrescription = mutation({
+  args: {
+    prescriptionId: v.id("prescriptions"),
+    title: v.string(),
+    dosage: v.string(),
+    time: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.prescriptionId, {
+      title: args.title,
+      dosage: args.dosage,
+      time: args.time,
+    });
+    return { success: true };
+  },
+});
+
+// Delete a prescription
+export const deletePrescription = mutation({
+  args: { prescriptionId: v.id("prescriptions") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.prescriptionId);
   },
 });

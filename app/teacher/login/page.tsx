@@ -2,36 +2,40 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { mockUsers } from '@/lib/mock-data';
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export default function TeacherLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  
+  // ✅ ADD THIS - Convex mutation for teacher login
+  const teacherLogin = useMutation(api.teachers.teacherLogin);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     
-    // Find user in mock data
-    const user = mockUsers.find(
-      (u) => u.email === email && u.password === password && u.role === 'teacher'
-    );
-
-    if (user) {
-      // Save user to localStorage (temporary - replace with real auth later)
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      // Redirect to dashboard
-      router.push('/teacher/dashboard');
-    } else {
-      setError('Invalid email or password');
+    try {
+      // ✅ CALL THE MUTATION - this saves to Convex
+      const result = await teacherLogin({ email, password });
+      
+      if (result.success) {
+        localStorage.setItem('currentUser', JSON.stringify(result.user));
+        localStorage.setItem('userType', 'teacher');
+        router.push('/teacher/dashboard');
+      }
+    } catch (err) {
+      setError('Login failed. Please try again.');
+      console.error(err);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl">👩‍🏫</span>
@@ -42,9 +46,7 @@ export default function TeacherLoginPage() {
           <p className="text-gray-600">Teacher Portal</p>
         </div>
 
-        {/* Login Form */}
         <form onSubmit={handleLogin} className="space-y-6">
-          {/* Email Input */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
@@ -56,11 +58,10 @@ export default function TeacherLoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="teacher@example.com"
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition text-gray-900 bg-white"
             />
           </div>
 
-          {/* Password Input */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
@@ -72,37 +73,27 @@ export default function TeacherLoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition text-gray-900 bg-white"
             />
           </div>
 
-          {/* Error Message */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
               {error}
             </div>
           )}
 
-          {/* Demo Credentials */}
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-sm">
-            <p className="font-semibold text-purple-900 mb-2">Demo Credentials:</p>
-            <p className="text-purple-800">Email: teacher@example.com</p>
-            <p className="text-purple-800">Password: teacher123</p>
-          </div>
-
-          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg transition duration-200 shadow-md hover:shadow-lg"
           >
-            Sign In
+            Sign In / Sign Up
           </button>
         </form>
 
-        {/* Footer */}
-        <p className="text-center text-sm text-gray-600 mt-6">
-          Need help? Contact school administration
-        </p>
+        <div className="mt-6 text-center text-sm text-gray-500">
+          <p>Any email works! First time? Account will be created automatically.</p>
+        </div>
       </div>
     </div>
   );

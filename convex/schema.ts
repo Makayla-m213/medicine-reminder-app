@@ -14,24 +14,50 @@ export default defineSchema({
 
   // PRESCRIPTIONS table
   prescriptions: defineTable({
-    studentId: v.id("students"), // Foreign key to students table
-    title: v.string(), // Medicine name
+    studentId: v.id("students"),
+    title: v.string(),
     dosage: v.string(),
-    time: v.string(), // Scheduled time (e.g., "10:00 AM")
+    time: v.string(),
     status: v.union(
       v.literal("pending"),
       v.literal("completed"),
       v.literal("missed")
     ),
-    dateLogged: v.string(), // ISO date string
-  }).index("by_student", ["studentId"]), // Index for fast lookups by student
+    dateLogged: v.string(),
+  }).index("by_student", ["studentId"]),
 
   // NOTES table
   notes: defineTable({
-    studentId: v.id("students"), // Foreign key to students table
-    teacherId: v.string(), // Who wrote the note
+    studentId: v.id("students"),
+    teacherId: v.string(),
     content: v.string(),
-    concern: v.boolean(), // Is this flagged as a concern?
-    timestamp: v.string(), // ISO date string
-  }).index("by_student", ["studentId"]), // Index for fast lookups by student
+    concern: v.boolean(),
+    timestamp: v.string(),
+  }).index("by_student", ["studentId"]),
+
+  // PARENTS table (ADD THIS)
+  parents: defineTable({
+    email: v.string(),
+    fullName: v.string(),
+    password: v.string(), // In production, hash this!
+    role: v.string(),
+    createdAt: v.string(),
+  }).index("by_email", ["email"]),
+
+  // TEACHERS table (ADD THIS)
+  teachers: defineTable({
+    email: v.string(),
+    fullName: v.string(),
+    password: v.string(), // In production, hash this!
+    role: v.string(),
+    createdAt: v.string(),
+  }).index("by_email", ["email"]),
+
+  // PARENT-CHILD relationship (ADD THIS)
+  parentChildren: defineTable({
+    parentId: v.id("parents"),
+    studentId: v.id("students"),
+    relationship: v.string(), // e.g., "father", "mother", "guardian"
+  }).index("by_parent", ["parentId"])
+   .index("by_student", ["studentId"]),
 });
